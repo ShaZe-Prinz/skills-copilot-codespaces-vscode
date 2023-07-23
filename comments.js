@@ -1,72 +1,28 @@
 //create web server
-var express = require("express");
-var router = express.Router();
-var Comment = require("../models/comment");
-var Campground = require("../models/campground");
-var middleware = require("../middleware");
+const express = require('express');
+const app = express();
+//connect to database
+const mongoose = require('mongoose');
+//import body-parser
+const bodyParser = require('body-parser');
+//import cors
+const cors = require('cors');
+//import path
+const path = require('path');
+//import routes
+const comments = require('./routes/api/comments');
+//import dotenv
+require('dotenv').config();
 
-// Comments new
-router.get("/campgrounds/:id/comments/new", middleware.isLoggedIn, function(req, res){
-	// find campground by id
-	Campground.findById(req.params.id, function(err, campground){
-		if(err){
-			console.log(err)
-		} else {
-			res.render("comments/new", {campground: campground});
-		}
-	})
-});
+// Bodyparser Middleware
+app.use(bodyParser.json());
+app.use(cors());
 
-// Comments create
-router.post("/campgrounds/:id/comments", middleware.isLoggedIn, function(req, res){
-	//lookup campground by id
-	Campground.findById(req.params.id, function(err, campground){
-		if(err){
-			console.log(err)
-			res.redirect("/campgrounds")
-		} else {
-			Comment.create(req.body.comment, function(err, comment){
-				if(err){
-					req.flash("error", "Something went wrong")
-					console.log(err)
-				} else {
-					// add username and id to comment
-					comment.author.id = req.user._id;
-					comment.author.username = req.user.username;
-					//save comment
-					comment.save()
-					campground.comments.push(comment);
-					campground.save();
-					req.flash("success", "Successfully added comment")
-					res.redirect("/campgrounds/" + campground._id)
-				}
-			})
-		}
-	})
-});
+// DB Config
+const db = process.env.MONGO_URI;
 
-// edit comment route
-router.get("/campgrounds/:id/comments/:comment_id/edit", middleware.checkCommentOwnership, function(req, res){
-	Comment.findById(req.params.comment_id, function(err, foundComment){
-			if(err){
-				res.redirect("back")
-			} else {
-				res.render("comments/edit", {campground_id: req.params.id, comment: foundComment})
-			}
-		})
-});
-
-// update comment route
-router.put("/campgrounds/:id/comments/:comment_id", middleware.checkCommentOwnership, function(req, res){
-	Comment.findByIdAndUpdate(req.params.comment_id, req.body.comment, function(err, updatedComment){
-			if(err){
-				res.redirect("back")
-			} else {
-				res.redirect("/campgrounds/" + req.params.id)
-			}
-		})
-});
-
-// destroy comment route
-router.delete("/campgrounds/:id/comments/:comment_id", middleware.checkCommentOwnership, function(req, res){
-	Comment.findByIdAndRemove(req
+// Connect to Mongo
+mongoose
+  .connect(db, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log('MongoDB Connected...'))
+  .catch((err) => console.log(err));
