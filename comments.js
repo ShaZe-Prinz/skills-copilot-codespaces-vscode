@@ -1,28 +1,17 @@
-//create web server
+//create web server with express
 const express = require('express');
 const app = express();
-//connect to database
-const mongoose = require('mongoose');
-//import body-parser
-const bodyParser = require('body-parser');
-//import cors
-const cors = require('cors');
-//import path
-const path = require('path');
-//import routes
-const comments = require('./routes/api/comments');
-//import dotenv
-require('dotenv').config();
+const port = 3000;
 
-// Bodyparser Middleware
-app.use(bodyParser.json());
-app.use(cors());
+//create a static file server
+app.use(express.static('public'));
 
-// DB Config
-const db = process.env.MONGO_URI;
+//create a route for the app
+app.get('/', (req, res) => {
+  res.send('Hello World!');
+});
 
-// Connect to Mongo
-mongoose
-  .connect(db, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log('MongoDB Connected...'))
-  .catch((err) => console.log(err));
+//start the server
+app.listen(port, () => {
+  console.log(`Example app listening at http://localhost:${port}`);
+});
